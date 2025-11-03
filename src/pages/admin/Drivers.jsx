@@ -112,7 +112,7 @@ export default function AdminDrivers() {
       await dispatch(toggleUserStatus(userId)).unwrap()
       dispatch(fetchUsers())
     } catch (error) {
-      console.error('Toggle status error:', error)
+      if (import.meta.env.DEV) console.error('Toggle status error:', error)
     } finally {
       setActionLoading(null)
     }
@@ -127,7 +127,7 @@ export default function AdminDrivers() {
       dispatch(fetchUsers())
       setDetail(null)
     } catch (error) {
-      console.error('Delete driver error:', error)
+      if (import.meta.env.DEV) console.error('Delete driver error:', error)
     } finally {
       setActionLoading(null)
     }
@@ -238,8 +238,6 @@ export default function AdminDrivers() {
             )}
           </CardContent>
         </Card>
-
-        {/* Add Driver Sheet */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetContent side="right" className="w-full sm:w-[460px]">
             <h3 className="text-xl font-semibold text-[#053E4F] mb-4">Add Driver</h3>
@@ -329,7 +327,6 @@ export default function AdminDrivers() {
           </SheetContent>
         </Sheet>
 
-        {/* Driver Details Sheet */}
         <Sheet open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
           <SheetContent side="right" className="w-full sm:w-[460px]">
             {detail && (

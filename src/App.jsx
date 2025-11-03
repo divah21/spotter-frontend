@@ -1,32 +1,30 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
-import HomePage from './pages/Home'
-import TripPlannerPage from './pages/TripPlanner'
-import ResultsPage from './pages/Results'
-import LoginPage from './pages/auth/Login'
-import SignupPage from './pages/auth/Signup'
+import { Suspense, lazy } from 'react'
 import ProtectedRoute from './components/ProtectedRoute'
 
-// Layout Components
-import AdminLayout from './components/AdminLayout'
-import DriverLayout from './components/DriverLayout'
+const HomePage = lazy(() => import('./pages/Home'))
+const TripPlannerPage = lazy(() => import('./pages/TripPlanner'))
+const ResultsPage = lazy(() => import('./pages/Results'))
+const LoginPage = lazy(() => import('./pages/auth/Login'))
+const SignupPage = lazy(() => import('./pages/auth/Signup'))
 
-// Admin Pages
-import AdminDashboard from './pages/admin/Dashboard'
-import AdminDrivers from './pages/admin/Drivers'
-import AdminTrips from './pages/admin/Trips'
-import AdminTripDetail from './pages/admin/TripDetail'
-import AdminLogs from './pages/admin/Logs'
-import AdminSettings from './pages/admin/Settings'
+const AdminLayout = lazy(() => import('./components/AdminLayout'))
+const DriverLayout = lazy(() => import('./components/DriverLayout'))
 
-// Driver Pages
-import DriverDashboard from './pages/driver/Dashboard'
-import DriverTrips from './pages/driver/Trips'
-import DriverTripDetail from './pages/driver/TripDetail'
-import DriverLogs from './pages/driver/Logs'
-import DriverSettings from './pages/driver/Settings'
-import NewTrip from './pages/driver/NewTrip'
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
+const AdminDrivers = lazy(() => import('./pages/admin/Drivers'))
+const AdminTrips = lazy(() => import('./pages/admin/Trips'))
+const AdminTripDetail = lazy(() => import('./pages/admin/TripDetail'))
+const AdminLogs = lazy(() => import('./pages/admin/Logs'))
+const AdminSettings = lazy(() => import('./pages/admin/Settings'))
 
-// Loading component
+const DriverDashboard = lazy(() => import('./pages/driver/Dashboard'))
+const DriverTrips = lazy(() => import('./pages/driver/Trips'))
+const DriverTripDetail = lazy(() => import('./pages/driver/TripDetail'))
+const DriverLogs = lazy(() => import('./pages/driver/Logs'))
+const DriverSettings = lazy(() => import('./pages/driver/Settings'))
+const NewTrip = lazy(() => import('./pages/driver/NewTrip'))
+
 const Loading = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="text-center">
@@ -36,7 +34,6 @@ const Loading = () => (
   </div>
 )
 
-// Error component
 const ErrorPage = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="text-center">
@@ -47,7 +44,6 @@ const ErrorPage = () => (
   </div>
 )
 
-// Not Found component
 const NotFound = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="text-center">
@@ -60,39 +56,60 @@ const NotFound = () => (
 
 function App() {
   const router = createBrowserRouter([
-    // Public routes
+    
     {
       path: '/',
-      element: <HomePage />,
+      element: (
+        <Suspense fallback={<Loading />}>
+          <HomePage />
+        </Suspense>
+      ),
       errorElement: <ErrorPage />,
     },
     {
       path: '/planner',
-      element: <TripPlannerPage />,
+      element: (
+        <Suspense fallback={<Loading />}>
+          <TripPlannerPage />
+        </Suspense>
+      ),
       errorElement: <ErrorPage />,
     },
     {
       path: '/results',
-      element: <ResultsPage />,
+      element: (
+        <Suspense fallback={<Loading />}>
+          <ResultsPage />
+        </Suspense>
+      ),
       errorElement: <ErrorPage />,
     },
     {
       path: '/login',
-      element: <LoginPage />,
+      element: (
+        <Suspense fallback={<Loading />}>
+          <LoginPage />
+        </Suspense>
+      ),
       errorElement: <ErrorPage />,
     },
     {
       path: '/signup',
-      element: <SignupPage />,
+      element: (
+        <Suspense fallback={<Loading />}>
+          <SignupPage />
+        </Suspense>
+      ),
       errorElement: <ErrorPage />,
     },
 
-    // Admin routes with layout
     {
       path: '/admin',
       element: (
         <ProtectedRoute allowedRoles={['admin']}>
-          <AdminLayout />
+          <Suspense fallback={<Loading />}>
+            <AdminLayout />
+          </Suspense>
         </ProtectedRoute>
       ),
       errorElement: <ErrorPage />,
@@ -103,37 +120,62 @@ function App() {
         },
         {
           path: 'dashboard',
-          element: <AdminDashboard />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <AdminDashboard />
+            </Suspense>
+          ),
         },
         {
           path: 'drivers',
-          element: <AdminDrivers />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <AdminDrivers />
+            </Suspense>
+          ),
         },
         {
           path: 'trips',
-          element: <AdminTrips />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <AdminTrips />
+            </Suspense>
+          ),
         },
         {
           path: 'trips/:id',
-          element: <AdminTripDetail />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <AdminTripDetail />
+            </Suspense>
+          ),
         },
         {
           path: 'logs',
-          element: <AdminLogs />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <AdminLogs />
+            </Suspense>
+          ),
         },
         {
           path: 'settings',
-          element: <AdminSettings />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <AdminSettings />
+            </Suspense>
+          ),
         },
       ],
     },
 
-    // Driver routes with layout
     {
       path: '/driver',
       element: (
         <ProtectedRoute allowedRoles={['driver']}>
-          <DriverLayout />
+          <Suspense fallback={<Loading />}>
+            <DriverLayout />
+          </Suspense>
         </ProtectedRoute>
       ),
       errorElement: <ErrorPage />,
@@ -144,47 +186,82 @@ function App() {
         },
         {
           path: 'dashboard',
-          element: <DriverDashboard />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <DriverDashboard />
+            </Suspense>
+          ),
         },
         {
           path: 'trips',
-          element: <DriverTrips />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <DriverTrips />
+            </Suspense>
+          ),
         },
         {
           path: 'trips/:id',
-          element: <DriverTripDetail />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <DriverTripDetail />
+            </Suspense>
+          ),
         },
         {
           path: 'trips/new',
-          element: <NewTrip />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <NewTrip />
+            </Suspense>
+          ),
         },
         {
           path: 'planner',
-          element: <TripPlannerPage />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <TripPlannerPage />
+            </Suspense>
+          ),
         },
         {
           path: 'results',
-          element: <ResultsPage />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <ResultsPage />
+            </Suspense>
+          ),
         },
         {
           path: 'logs',
-          element: <DriverLogs />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <DriverLogs />
+            </Suspense>
+          ),
         },
         {
           path: 'settings',
-          element: <DriverSettings />,
+          element: (
+            <Suspense fallback={<Loading />}>
+              <DriverSettings />
+            </Suspense>
+          ),
         },
       ],
     },
 
-    // 404 catch-all
     {
       path: '*',
       element: <NotFound />,
     },
   ])
 
-  return <RouterProvider router={router} />
+  return (
+    <Suspense fallback={<Loading />}>
+      <RouterProvider router={router} />
+    </Suspense>
+  )
 }
 
 export default App

@@ -58,12 +58,11 @@ export default function DriverLogs() {
 
     setSubmitting(true)
     try {
-      // Submit selected log IDs in a single request as required by backend: { log_ids: [...], notes: '' }
       await dispatch(submitLogsForReview({ logIds: selectedLogs, notes: '' }))
       setSelectedLogs([])
       dispatch(fetchLogs())
     } catch (error) {
-      console.error('Submit logs error:', error)
+      if (import.meta.env.DEV) console.error('Submit logs error:', error)
     } finally {
       setSubmitting(false)
     }
@@ -213,8 +212,6 @@ export default function DriverLogs() {
           )}
         </CardContent>
       </Card>
-
-      {/* Log Detail Sheet */}
       <Sheet open={!!selectedLog} onOpenChange={(o) => !o && setSelectedLog(null)}>
         <SheetContent side="right" className="w-full sm:max-w-[90vw] overflow-y-auto">
           {selectedLog && (

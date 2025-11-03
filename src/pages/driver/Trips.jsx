@@ -68,7 +68,7 @@ export default function DriverTrips() {
       }
       dispatch(fetchTrips())
     } catch (error) {
-      console.error('Action error:', error)
+      if (import.meta.env.DEV) console.error('Action error:', error)
     } finally {
       setActionLoading(null)
     }
@@ -161,8 +161,6 @@ export default function DriverTrips() {
                       </Badge>
                     </div>
                   </div>
-
-                  {/* Action Buttons */}
                   <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
                     <Button
                       size="sm"

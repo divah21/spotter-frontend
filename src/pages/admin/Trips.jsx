@@ -83,7 +83,7 @@ export default function AdminTrips() {
       await dispatch(approveTripRequest(tripId)).unwrap()
       dispatch(fetchTrips())
     } catch (error) {
-      console.error('Approve error:', error)
+      if (import.meta.env.DEV) console.error('Approve error:', error)
     } finally {
       setActionLoading(null)
     }
@@ -102,7 +102,7 @@ export default function AdminTrips() {
       setSelectedTrip(null)
       setRejectNotes('')
     } catch (error) {
-      console.error('Reject error:', error)
+      if (import.meta.env.DEV) console.error('Reject error:', error)
     } finally {
       setActionLoading(null)
     }
@@ -207,8 +207,6 @@ export default function AdminTrips() {
                       </Badge>
                     </div>
                   </div>
-
-                  {/* View + Action Buttons for Pending Trips */}
                   <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
                     <Button
                       size="sm"
@@ -218,8 +216,7 @@ export default function AdminTrips() {
                       View Details
                     </Button>
                   </div>
-
-                  {/* Action Buttons for Pending Trips */}
+                  
                   {trip.status === 'pending' && (
                     <div className="flex flex-wrap gap-2 mt-2">
                       <Button
@@ -255,7 +252,6 @@ export default function AdminTrips() {
                     </div>
                   )}
 
-                  {/* Show rejection notes for rejected trips */}
                   {trip.status === 'rejected' && trip.notes && (
                     <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
                       <p className="text-sm text-red-800">

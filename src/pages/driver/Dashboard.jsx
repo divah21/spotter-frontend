@@ -22,13 +22,11 @@ export default function DriverDashboard() {
   })
 
   useEffect(() => {
-    // Fetch real data
     dispatch(fetchTrips())
     dispatch(fetchLogs())
   }, [dispatch])
 
   useEffect(() => {
-    // Calculate stats from real data
     if (trips && logs) {
       const activeTrips = trips.filter(
         (t) => t.status === 'in_progress' || t.status === 'approved'
@@ -83,7 +81,6 @@ export default function DriverDashboard() {
     },
   ]
 
-  // Get recent trips: show most recent regardless of status to ensure visibility
   const recentTrips = [...(trips || [])]
     .sort((a, b) => {
       const aTime = new Date(a.created_at || a.created || 0).getTime()
@@ -115,7 +112,6 @@ export default function DriverDashboard() {
   return (
     
       <motion.div initial="hidden" animate="visible" variants={containerVariants} className="space-y-6">
-        {/* Welcome Section */}
         <motion.div
           variants={itemVariants}
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
@@ -133,7 +129,6 @@ export default function DriverDashboard() {
           </Button>
         </motion.div>
 
-        {/* Stats Grid */}
         <motion.div variants={containerVariants} className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {statsConfig.map((stat) => {
             const Icon = stat.icon
@@ -162,7 +157,6 @@ export default function DriverDashboard() {
           })}
         </motion.div>
 
-        {/* Recent Trips */}
         <motion.div variants={itemVariants}>
           <Card className="shadow-md">
             <CardHeader>
@@ -210,7 +204,6 @@ export default function DriverDashboard() {
           </Card>
         </motion.div>
 
-        {/* Quick Actions */}
         <motion.div variants={containerVariants} className="grid gap-4 md:grid-cols-3">
           <motion.div variants={itemVariants} whileHover={{ scale: 1.02, y: -2 }}>
             <Card

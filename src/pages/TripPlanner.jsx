@@ -61,10 +61,8 @@ export default function TripPlannerPage() {
         currentCycleUsed: parseFloat(formData.currentCycleUsed),
       }
 
-      // Store form data temporarily
       dispatch(setTripData(tripDataObj))
 
-      // Plan the trip (calls backend API to calculate route and generate ELD logs)
       const result = await dispatch(planTrip({
         current_location: formData.currentLocation,
         pickup_location: formData.pickupLocation,
@@ -73,7 +71,6 @@ export default function TripPlannerPage() {
       }))
 
       if (result.type === 'trip/plan/fulfilled') {
-        // Navigate to results to review the planned trip
         navigate('/driver/results')
       } else {
         setErrors({ submit: error || 'Error calculating route. Please try again.' })
@@ -83,7 +80,6 @@ export default function TripPlannerPage() {
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value })
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors({ ...errors, [field]: '' })
     }
@@ -206,7 +202,6 @@ export default function TripPlannerPage() {
             </CardContent>
           </Card>
 
-          {/* Info Box */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

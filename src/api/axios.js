@@ -8,10 +8,8 @@ const api = axios.create({
   },
 })
 
-// Request interceptor
 api.interceptors.request.use(
   (config) => {
-    // Add auth token if available
     const token = localStorage.getItem('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -23,7 +21,6 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor
 api.interceptors.response.use(
   (response) => {
     return response
@@ -32,7 +29,6 @@ api.interceptors.response.use(
     const originalRequest = error.config
 
     if (error.response) {
-      // Handle 401 Unauthorized - try refreshing token
       if (error.response.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true
 
@@ -51,7 +47,6 @@ api.interceptors.response.use(
             }
           }
         } catch (refreshError) {
-          // Refresh failed, logout user
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
           localStorage.removeItem('user')
@@ -60,7 +55,6 @@ api.interceptors.response.use(
         }
       }
 
-      // If still unauthorized or no refresh token, redirect to login
       if (error.response.status === 401) {
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')

@@ -98,7 +98,7 @@ export default function AdminLogs() {
       setSelectedLog(null)
       setReviewNotes('')
     } catch (error) {
-      console.error('Review error:', error)
+      if (import.meta.env.DEV) console.error('Review error:', error)
     } finally {
       setActionLoading(null)
     }
@@ -235,8 +235,6 @@ export default function AdminLogs() {
                       )}
                     </div>
                   </div>
-
-                  {/* View button (all statuses) + Action Buttons for Submitted Logs */}
                   <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
                     <Button
                       size="sm"
@@ -287,7 +285,6 @@ export default function AdminLogs() {
         </CardContent>
       </Card>
 
-      {/* Reject Log Sheet */}
       <Sheet open={!!selectedLog} onOpenChange={(o) => !o && setSelectedLog(null)}>
         <SheetContent side="right" className="w-full sm:w-[460px]">
           {selectedLog && (
@@ -340,7 +337,6 @@ export default function AdminLogs() {
         </SheetContent>
       </Sheet>
 
-      {/* View Log Sheet */}
       <Sheet open={!!viewLog} onOpenChange={(o) => !o && setViewLog(null)}>
         <SheetContent side="right" className="w-full sm:max-w-[90vw] overflow-y-auto">
           {viewLog && (

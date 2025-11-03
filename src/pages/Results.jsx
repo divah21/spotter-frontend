@@ -16,7 +16,6 @@ export default function ResultsPage() {
   const { tripData, routeData, loading } = useSelector((state) => state.trip)
 
   useEffect(() => {
-    // Redirect if no route data from planning
     if (!routeData) {
       navigate('/driver/planner')
     }
@@ -26,7 +25,6 @@ export default function ResultsPage() {
     return null
   }
 
-  // Extract data from routeData (which contains the backend response)
   const trip = routeData
   const eldLogs = trip.eld_logs || []
   const stops = trip.stops || []
@@ -36,8 +34,6 @@ export default function ResultsPage() {
   }
 
   const handleSaveTrip = async () => {
-    // Trip is already saved by the backend during planning
-    // Just navigate to trips page
     navigate('/driver/trips')
   }
 
@@ -54,7 +50,6 @@ export default function ResultsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -80,7 +75,6 @@ export default function ResultsPage() {
           </div>
         </motion.div>
 
-        {/* Trip Summary */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -95,7 +89,6 @@ export default function ResultsPage() {
             </CardHeader>
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Locations */}
                 <div className="space-y-3">
                   <h3 className="font-semibold text-[#053E4F] flex items-center gap-2">
                     <MapPin className="w-4 h-4" />
@@ -126,7 +119,6 @@ export default function ResultsPage() {
                   </div>
                 </div>
 
-                {/* Stats */}
                 <div className="space-y-3">
                   <h3 className="font-semibold text-[#053E4F] flex items-center gap-2">
                     <Clock className="w-4 h-4" />
@@ -152,7 +144,6 @@ export default function ResultsPage() {
                   </div>
                 </div>
 
-                {/* Rest Stops Count */}
                 <div className="space-y-3">
                   <h3 className="font-semibold text-[#053E4F]">Stops Summary</h3>
                   <div className="space-y-2">
@@ -184,7 +175,6 @@ export default function ResultsPage() {
           </Card>
         </motion.div>
 
-        {/* Map */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -202,7 +192,6 @@ export default function ResultsPage() {
           </Card>
         </motion.div>
 
-        {/* Rest Stops Detail */}
         {stops && stops.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -249,7 +238,6 @@ export default function ResultsPage() {
           </motion.div>
         )}
 
-        {/* ELD Logs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -265,7 +253,6 @@ export default function ResultsPage() {
           ))}
         </motion.div>
 
-        {/* Print Instructions */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
