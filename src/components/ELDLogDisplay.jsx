@@ -20,10 +20,10 @@ export default function ELDLogDisplay({ log, tripData }) {
     ctx.clearRect(0, 0, width, height)
     
     // Draw ELD log grid and segments
-    drawELDLog(ctx, log, width, height)
-  }, [log])
+    drawELDLog(ctx, log, width, height, tripData)
+  }, [log, tripData])
 
-  const drawELDLog = (ctx, log, width, height) => {
+  const drawELDLog = (ctx, log, width, height, tripData) => {
     const headerHeight = 80
     const gridHeight = 200
     const gridY = headerHeight
@@ -39,12 +39,12 @@ export default function ELDLogDisplay({ log, tripData }) {
     ctx.textAlign = 'left'
     ctx.fillText("Driver's Daily Log (24 hours)", 20, 24)
 
-    const dateStr = new Date(log.date || log.log_date).toLocaleDateString('en-US')
+  const dateStr = new Date(log.date || log.log_date).toLocaleDateString('en-US')
     ctx.font = '12px sans-serif'
     ctx.fillStyle = '#334155'
-    ctx.fillText(`Date: ${dateStr}`, 20, 44)
-    const from = log.trip?.pickup_location || ''
-    const to = log.trip?.dropoff_location || ''
+  ctx.fillText(`Date: ${dateStr}`, 20, 44)
+  const from = (tripData?.pickup_location || tripData?.pickupLocation || log.trip?.pickup_location || log.trip?.pickupLocation || '')
+  const to = (tripData?.dropoff_location || tripData?.dropoffLocation || log.trip?.dropoff_location || log.trip?.dropoffLocation || '')
     ctx.fillText(`From: ${from}`, 250, 44)
     ctx.fillText(`To: ${to}`, 520, 44)
     const miles = log.total_miles || log.totalMiles || 0

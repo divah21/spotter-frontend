@@ -149,11 +149,21 @@ export default function DriverLogs() {
                           <p className="font-medium text-[#021d26]">
                             Log Date: {log.date || log.log_date ? new Date(log.date || log.log_date).toLocaleDateString() : 'N/A'}
                           </p>
-                          {log.trip && (
-                            <p className="text-sm text-gray-500">
-                              Trip: {log.trip.pickup_location} → {log.trip.dropoff_location}
-                            </p>
-                          )}
+                          {(() => {
+                            if (typeof log.trip === 'object' && log.trip) {
+                              return (
+                                <p className="text-sm text-gray-500">
+                                  Trip: {log.trip.pickup_location} → {log.trip.dropoff_location}
+                                </p>
+                              )
+                            }
+                            if (log.trip) {
+                              return (
+                                <p className="text-sm text-gray-500">Trip: #{String(log.trip)}</p>
+                              )
+                            }
+                            return null
+                          })()}
                         </div>
                         <Badge variant={getStatusBadgeVariant(log.submission_status)}>
                           {getStatusLabel(log.submission_status)}
@@ -216,7 +226,7 @@ export default function DriverLogs() {
         <SheetContent side="right" className="w-full sm:max-w-[90vw] overflow-y-auto">
           {selectedLog && (
             <div className="space-y-4">
-              <ELDLogDisplay log={selectedLog} tripData={selectedLog.trip || {}} />
+              <ELDLogDisplay log={selectedLog} tripData={typeof selectedLog.trip === 'object' ? selectedLog.trip : {}} />
               <Button onClick={() => setSelectedLog(null)} className="w-full">
                 Close
               </Button>
