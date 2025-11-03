@@ -58,9 +58,9 @@ export default function DriverLogs() {
 
     setSubmitting(true)
     try {
-      await dispatch(submitLogsForReview({ logIds: selectedLogs, notes: '' }))
+      await dispatch(submitLogsForReview({ logIds: selectedLogs, notes: '' })).unwrap()
       setSelectedLogs([])
-      dispatch(fetchLogs())
+      await dispatch(fetchLogs()).unwrap()
     } catch (error) {
       if (import.meta.env.DEV) console.error('Submit logs error:', error)
     } finally {
