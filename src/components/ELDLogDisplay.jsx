@@ -81,7 +81,7 @@ export default function ELDLogDisplay({ log, tripData }) {
     ctx.strokeStyle = '#94a3b8'
     ctx.lineWidth = 1
     
-    // Vertical lines (hours)
+    // Vertical lines (hours) - place labels ABOVE the grid to prevent crossing
     for (let i = 0; i <= 24; i++) {
       const x = i * hourWidth
       ctx.beginPath()
@@ -89,11 +89,11 @@ export default function ELDLogDisplay({ log, tripData }) {
       ctx.lineTo(x, gridY + gridHeight)
       ctx.stroke()
       
-      // Hour labels
+      // Hour labels ABOVE the grid line
       ctx.fillStyle = '#334155'
-      ctx.font = '10px sans-serif'
+      ctx.font = 'bold 11px sans-serif'
       ctx.textAlign = 'center'
-      ctx.fillText(i.toString(), x, gridY - 5)
+      ctx.fillText(i.toString(), x, gridY - 10)
     }
     
     // Horizontal lines (status rows)
@@ -133,8 +133,16 @@ export default function ELDLogDisplay({ log, tripData }) {
       log.segments.forEach((segment, i) => {
         const startHour = segment.start_hour || segment.startHour || 0
         const duration = segment.duration || 0
-        const startX = startHour * hourWidth
-        const endX = (startHour + duration) * hourWidth
+        
+        // Clamp to 24-hour display (backend may send hours beyond 24 for next-day segments)
+        const clampedStart = Math.min(Math.max(startHour, 0), 24)
+        const clampedEnd = Math.min(startHour + duration, 24)
+        const clampedDuration = clampedEnd - clampedStart
+        
+        if (clampedDuration <= 0) return // skip segments entirely outside 0-24 range
+        
+        const startX = clampedStart * hourWidth
+        const endX = clampedEnd * hourWidth
 
         let rowIndex
         let segmentColor
@@ -177,8 +185,8 @@ export default function ELDLogDisplay({ log, tripData }) {
         ctx.beginPath(); ctx.arc(endX, y, 4, 0, Math.PI * 2); ctx.fill()
 
         // small time label centered on the segment
-        const startLabel = Math.floor(startHour).toString().padStart(2, '0')
-        const endLabel = Math.floor(startHour + duration).toString().padStart(2, '0')
+        const startLabel = Math.floor(clampedStart).toString().padStart(2, '0')
+        const endLabel = Math.floor(clampedEnd).toString().padStart(2, '0')
         const label = `${startLabel}:00–${endLabel}:00`
         ctx.font = '9px sans-serif'
         ctx.fillStyle = '#1e293b'
