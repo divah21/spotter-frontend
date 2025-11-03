@@ -24,7 +24,7 @@ export default function ELDLogDisplay({ log, tripData }) {
   }, [log, tripData])
 
   const drawELDLog = (ctx, log, width, height, tripData) => {
-    const headerHeight = 120
+    const headerHeight = 140
     const gridHeight = 200
     const gridY = headerHeight
     const hourWidth = width / 24
@@ -34,39 +34,40 @@ export default function ELDLogDisplay({ log, tripData }) {
     ctx.fillRect(0, 0, width, height)
 
     // Header: mimic paper log look
-  ctx.fillStyle = '#0f172a'
+    ctx.fillStyle = '#0f172a'
     ctx.font = 'bold 18px sans-serif'
     ctx.textAlign = 'left'
     ctx.fillText("Driver's Daily Log (24 hours)", 20, 24)
 
-  const dateStr = new Date(log.date || log.log_date).toLocaleDateString('en-US')
+    const dateStr = new Date(log.date || log.log_date).toLocaleDateString('en-US')
     ctx.font = '12px sans-serif'
     ctx.fillStyle = '#334155'
-  ctx.fillText(`Date: ${dateStr}`, 20, 44)
-  const fromLoc = (tripData?.pickup_location || tripData?.pickupLocation || log.trip?.pickup_location || log.trip?.pickupLocation || '')
-  const toLoc = (tripData?.dropoff_location || tripData?.dropoffLocation || log.trip?.dropoff_location || log.trip?.dropoffLocation || '')
-  const fromTime = log.from_time || log.fromTime || ''
-  const toTime = log.to_time || log.toTime || ''
-  ctx.fillText(`From: ${fromTime || fromLoc || ''}`, 250, 44)
-  ctx.fillText(`To: ${toTime || toLoc || ''}`, 520, 44)
-  const milesDriving = Number(log.total_miles_driving_today || log.totalMilesDrivingToday || log.total_miles || log.totalMiles || 0)
-  const totalMileageToday = Number(log.total_mileage_today || log.totalMileageToday || milesDriving || 0)
-  ctx.fillText(`Total Miles Driving Today: ${milesDriving}`, 820, 44)
-  ctx.fillText(`Total Mileage Today: ${totalMileageToday}`, 820, 60)
-
-  // Ancillary carrier/vehicle/addresses (best-effort mapping)
-  const carrier = log.carrier_name || log.carrier || ''
-  const truck = log.truck_numbers || log.truck || log.tractor_trailer || ''
-  const mainOffice = log.main_office_address || ''
-  const homeTerminal = log.home_terminal_address || ''
-  const driverName = (log.driver && (log.driver.first_name || log.driver.last_name))
-    ? `${log.driver.first_name || ''} ${log.driver.last_name || ''}`.trim()
-    : (log.driver_name || log.driverFullName || '')
-  if (driverName) ctx.fillText(`Driver: ${driverName}`, 20, 28 + 16) // second line, small
-  ctx.fillText(`Name of Carrier: ${carrier}`, 20, 60)
-  ctx.fillText(`Truck/Trailer/Lic #: ${truck}`, 20, 76)
-  ctx.fillText(`Main Office: ${mainOffice}`, 250, 60)
-  ctx.fillText(`Home Terminal: ${homeTerminal}`, 250, 76)
+    ctx.fillText(`Date: ${dateStr}`, 20, 48)
+    
+    // Driver name from trip.driver or driver_name field
+    const driverName = log.driver 
+      ? `${log.driver.first_name || ''} ${log.driver.last_name || ''}`.trim()
+      : (log.driver_name || tripData?.driver_name || '')
+    if (driverName) ctx.fillText(`Driver: ${driverName}`, 20, 64)
+    
+    // From/To prefer location names
+    const fromLoc = (tripData?.pickup_location || tripData?.pickupLocation || log.trip?.pickup_location || log.trip?.pickupLocation || '')
+    const toLoc = (tripData?.dropoff_location || tripData?.dropoffLocation || log.trip?.dropoff_location || log.trip?.dropoffLocation || '')
+    ctx.fillText(`From: ${fromLoc || ''}`, 250, 48)
+    ctx.fillText(`To: ${toLoc || ''}`, 520, 48)
+    
+    const totalMiles = Number(log.total_miles || log.totalMiles || 0)
+    ctx.fillText(`Total Miles Today: ${totalMiles}`, 820, 48)
+    
+    // Ancillary carrier/vehicle/addresses (best-effort mapping)
+    const carrier = log.carrier_name || log.carrier || ''
+    const truck = log.truck_numbers || log.truck || log.tractor_trailer || ''
+    const mainOffice = log.main_office_address || ''
+    const homeTerminal = log.home_terminal_address || ''
+    ctx.fillText(`Name of Carrier: ${carrier}`, 20, 80)
+    ctx.fillText(`Truck/Trailer/Lic #: ${truck}`, 20, 96)
+    ctx.fillText(`Main Office: ${mainOffice}`, 250, 80)
+    ctx.fillText(`Home Terminal: ${homeTerminal}`, 250, 96)
 
     // visual padding divider under header
     ctx.strokeStyle = '#cbd5e1'
@@ -121,17 +122,10 @@ export default function ELDLogDisplay({ log, tripData }) {
       }
     }
     
-    // helpers
-    const timeLabel = (h) => {
-      const hr = Math.floor(h)
-      return `${hr}`
-    }
-
-    // Draw segments as thin lines on the center of each row with vertical connectors and dots at turning points (paper log style)
+    // Draw segments as thin lines on the center of each row with vertical connectors and colored dots at turning points
     if (log.segments && log.segments.length > 0) {
       const centerYOfRow = (idx) => gridY + idx * rowHeight + rowHeight / 2
       ctx.lineWidth = 3
-      ctx.strokeStyle = '#0f172a'
 
       let prevEndX = null
       let prevRowIndex = null
@@ -143,13 +137,25 @@ export default function ELDLogDisplay({ log, tripData }) {
         const endX = (startHour + duration) * hourWidth
 
         let rowIndex
-        if (segment.status === 'off-duty') rowIndex = 0
-        else if (segment.status === 'sleeper') rowIndex = 1
-        else if (segment.status === 'driving') rowIndex = 2
-        else if (segment.status === 'on-duty') rowIndex = 3
-        else return
+        let segmentColor
+        if (segment.status === 'off-duty') {
+          rowIndex = 0
+          segmentColor = statusColors['off-duty']
+        } else if (segment.status === 'sleeper') {
+          rowIndex = 1
+          segmentColor = statusColors['sleeper']
+        } else if (segment.status === 'driving') {
+          rowIndex = 2
+          segmentColor = statusColors['driving']
+        } else if (segment.status === 'on-duty') {
+          rowIndex = 3
+          segmentColor = statusColors['on-duty']
+        } else return
 
         const y = centerYOfRow(rowIndex)
+
+        // Set line color for this segment
+        ctx.strokeStyle = segmentColor
 
         // connector if status changed at this boundary
         if (prevEndX !== null && Math.abs(prevEndX - startX) < 0.1 && prevRowIndex !== null && prevRowIndex !== rowIndex) {
@@ -165,17 +171,22 @@ export default function ELDLogDisplay({ log, tripData }) {
         ctx.lineTo(endX, y)
         ctx.stroke()
 
-        // dots at segment start and end
-        ctx.fillStyle = '#0f172a'
-        ctx.beginPath(); ctx.arc(startX, y, 3, 0, Math.PI * 2); ctx.fill()
-        ctx.beginPath(); ctx.arc(endX, y, 3, 0, Math.PI * 2); ctx.fill()
+        // dots at segment start and end with status color
+        ctx.fillStyle = segmentColor
+        ctx.beginPath(); ctx.arc(startX, y, 4, 0, Math.PI * 2); ctx.fill()
+        ctx.beginPath(); ctx.arc(endX, y, 4, 0, Math.PI * 2); ctx.fill()
 
         // small time label centered on the segment
-        const label = `${timeLabel(startHour)}–${timeLabel(startHour + duration)}`
-        ctx.font = '10px sans-serif'
-        ctx.fillStyle = '#64748b'
+        const startLabel = Math.floor(startHour).toString().padStart(2, '0')
+        const endLabel = Math.floor(startHour + duration).toString().padStart(2, '0')
+        const label = `${startLabel}:00–${endLabel}:00`
+        ctx.font = '9px sans-serif'
+        ctx.fillStyle = '#1e293b'
         ctx.textAlign = 'center'
-        ctx.fillText(label, (startX + endX) / 2, y - 6)
+        const midX = (startX + endX) / 2
+        if (endX - startX > 40) { // only show label if segment is wide enough
+          ctx.fillText(label, midX, y - 8)
+        }
 
         prevEndX = endX
         prevRowIndex = rowIndex
@@ -241,8 +252,9 @@ export default function ELDLogDisplay({ log, tripData }) {
           <canvas
             ref={canvasRef}
             width={1200}
-            height={280}
-            className="w-full border border-slate-200 rounded-lg"
+            height={320}
+            className="w-full max-w-full border border-slate-200 rounded-lg"
+            style={{ display: 'block', maxWidth: '100%', height: 'auto' }}
           />
         </div>
 
