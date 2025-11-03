@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Label } from '@/components/ui/Label'
+import { ConfirmDialog, AlertDialog } from '@/components/ui/Dialog'
 import {
   FileText,
   CheckCircle,
@@ -29,6 +30,8 @@ export default function AdminLogs() {
   const [viewLog, setViewLog] = useState(null)
   const [reviewNotes, setReviewNotes] = useState('')
   const [actionLoading, setActionLoading] = useState(null)
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: null, logId: null })
+  const [alertDialog, setAlertDialog] = useState({ isOpen: false, title: '', message: '' })
 
   useEffect(() => {
     if (statusFilter === 'submitted') {
@@ -76,7 +79,11 @@ export default function AdminLogs() {
 
   const handleReview = async (logId, action) => {
     if (action === 'reject' && !reviewNotes.trim()) {
-      alert('Please provide rejection notes')
+      setAlertDialog({
+        isOpen: true,
+        title: 'Rejection Notes Required',
+        message: 'Please provide rejection notes before rejecting this log.'
+      })
       return
     }
 
@@ -100,16 +107,28 @@ export default function AdminLogs() {
       setReviewNotes('')
     } catch (error) {
       if (import.meta.env.DEV) console.error('Review error:', error)
+      setAlertDialog({
+        isOpen: true,
+        title: 'Error',
+        message: error.response?.data?.error || 'Failed to review log'
+      })
     } finally {
       setActionLoading(null)
     }
   }
 
   const handleDeleteLog = async (logId) => {
-    if (!confirm('Are you sure you want to delete this log? This action cannot be undone.')) {
-      return
-    }
+    setConfirmDialog({
+      isOpen: true,
+      type: 'delete',
+      logId: logId
+    })
+  }
 
+  const confirmDelete = async () => {
+    const logId = confirmDialog.logId
+    setConfirmDialog({ isOpen: false, type: null, logId: null })
+    
     setActionLoading(`delete-${logId}`)
     try {
       await LogService.deleteLog(logId)
@@ -120,7 +139,11 @@ export default function AdminLogs() {
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error('Delete error:', error)
-      alert(error.response?.data?.error || 'Failed to delete log')
+      setAlertDialog({
+        isOpen: true,
+        title: 'Error',
+        message: error.response?.data?.error || 'Failed to delete log'
+      })
     } finally {
       setActionLoading(null)
     }
@@ -384,6 +407,24 @@ export default function AdminLogs() {
           )}
         </SheetContent>
       </Sheet>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen && confirmDialog.type === 'delete'}
+        onClose={() => setConfirmDialog({ isOpen: false, type: null, logId: null })}
+        onConfirm={confirmDelete}
+        title="Delete Log"
+        message="Are you sure you want to delete this ELD log? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
+
+      <AlertDialog
+        isOpen={alertDialog.isOpen}
+        onClose={() => setAlertDialog({ isOpen: false, title: '', message: '' })}
+        title={alertDialog.title}
+        message={alertDialog.message}
+      />
     </motion.div>
   )
 }

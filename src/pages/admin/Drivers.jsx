@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { ConfirmDialog, AlertDialog } from '@/components/ui/Dialog'
 import { Users, Plus, Search, Mail, Phone, Clock, Loader2, AlertCircle, Trash2 } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
@@ -26,6 +27,8 @@ export default function AdminDrivers() {
   const [detail, setDetail] = useState(null)
   const [query, setQuery] = useState(searchParams.get('q') || '')
   const [actionLoading, setActionLoading] = useState(null)
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: null, userId: null })
+  const [alertDialog, setAlertDialog] = useState({ isOpen: false, title: '', message: '' })
 
   useEffect(() => {
     dispatch(fetchUsers())
@@ -119,8 +122,17 @@ export default function AdminDrivers() {
   }
 
   const handleDeleteDriver = async (userId) => {
-    if (!confirm('Are you sure you want to delete this driver?')) return
+    setConfirmDialog({
+      isOpen: true,
+      type: 'delete',
+      userId: userId
+    })
+  }
 
+  const confirmDelete = async () => {
+    const userId = confirmDialog.userId
+    setConfirmDialog({ isOpen: false, type: null, userId: null })
+    
     setActionLoading(`delete-${userId}`)
     try {
       await dispatch(deleteExistingUser(userId)).unwrap()
@@ -128,6 +140,11 @@ export default function AdminDrivers() {
       setDetail(null)
     } catch (error) {
       if (import.meta.env.DEV) console.error('Delete driver error:', error)
+      setAlertDialog({
+        isOpen: true,
+        title: 'Error',
+        message: error.response?.data?.error || 'Failed to delete driver'
+      })
     } finally {
       setActionLoading(null)
     }
@@ -406,6 +423,24 @@ export default function AdminDrivers() {
             )}
           </SheetContent>
         </Sheet>
+
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen && confirmDialog.type === 'delete'}
+          onClose={() => setConfirmDialog({ isOpen: false, type: null, userId: null })}
+          onConfirm={confirmDelete}
+          title="Delete Driver"
+          message="Are you sure you want to delete this driver? This action cannot be undone and will remove all associated data."
+          confirmText="Delete"
+          cancelText="Cancel"
+          variant="destructive"
+        />
+
+        <AlertDialog
+          isOpen={alertDialog.isOpen}
+          onClose={() => setAlertDialog({ isOpen: false, title: '', message: '' })}
+          title={alertDialog.title}
+          message={alertDialog.message}
+        />
     </motion.div>
   )
 }

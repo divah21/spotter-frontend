@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { MapPin, Loader2, Navigation2 } from 'lucide-react'
 import { Input } from './ui/Input'
 import { Button } from './ui/Button'
+import { AlertDialog } from './ui/Dialog'
 
 // Nominatim API (OpenStreetMap) - Free geocoding service
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org'
@@ -23,6 +24,7 @@ export default function LocationInput({
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [loadingLocation, setLoadingLocation] = useState(false)
   const [searchingLocations, setSearchingLocations] = useState(false)
+  const [alertDialog, setAlertDialog] = useState({ isOpen: false, title: '', message: '' })
   const wrapperRef = useRef(null)
 
   // Close suggestions when clicking outside
@@ -150,7 +152,11 @@ export default function LocationInput({
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser')
+      setAlertDialog({
+        isOpen: true,
+        title: 'Geolocation Not Supported',
+        message: 'Geolocation is not supported by your browser. Please enter your location manually.'
+      })
       return
     }
 
@@ -174,7 +180,11 @@ export default function LocationInput({
       },
       (error) => {
         console.error('Error getting location:', error)
-        alert('Unable to retrieve your location. Please enter manually.')
+        setAlertDialog({
+          isOpen: true,
+          title: 'Location Error',
+          message: 'Unable to retrieve your location. Please enter your location manually.'
+        })
         setLoadingLocation(false)
       }
     )
@@ -265,6 +275,13 @@ export default function LocationInput({
       ) : (
         <p className="text-xs text-gray-500">Type at least 3 characters to search locations</p>
       )}
+
+      <AlertDialog
+        isOpen={alertDialog.isOpen}
+        onClose={() => setAlertDialog({ isOpen: false, title: '', message: '' })}
+        title={alertDialog.title}
+        message={alertDialog.message}
+      />
     </div>
   )
 }

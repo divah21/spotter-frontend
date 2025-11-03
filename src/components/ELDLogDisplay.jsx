@@ -219,6 +219,120 @@ export default function ELDLogDisplay({ log, tripData }) {
     return `${h}h ${m}m`
   }
 
+  const downloadCompleteLog = () => {
+    // Create a temporary canvas with all information
+    const tempCanvas = document.createElement('canvas')
+    const ctx = tempCanvas.getContext('2d')
+    
+    // Set larger canvas size to fit everything
+    tempCanvas.width = 1200
+    tempCanvas.height = 1000
+    
+    // Background
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height)
+    
+    // Draw the ELD graph at the top
+    drawELDLog(ctx, log, tempCanvas.width, 320, tripData)
+    
+    let yOffset = 340
+    
+    // Draw summary cards
+    ctx.fillStyle = '#1e293b'
+    ctx.font = 'bold 16px sans-serif'
+    ctx.textAlign = 'left'
+    ctx.fillText('Hours Summary', 20, yOffset)
+    yOffset += 30
+    
+    const summaries = [
+      { label: 'Off Duty', hours: log.hours_off_duty || log.hours?.offDuty || 0, color: '#22c55e', bg: '#dcfce7' },
+      { label: 'Sleeper Berth', hours: log.hours_sleeper || log.hours?.sleeperBerth || 0, color: '#3b82f6', bg: '#dbeafe' },
+      { label: 'Driving', hours: log.hours_driving || log.hours?.driving || 0, color: '#ef4444', bg: '#fee2e2' },
+      { label: 'On Duty', hours: log.hours_on_duty || log.hours?.onDuty || 0, color: '#f97316', bg: '#ffedd5' }
+    ]
+    
+    summaries.forEach((item, index) => {
+      const x = 20 + (index * 290)
+      ctx.fillStyle = item.bg
+      ctx.fillRect(x, yOffset, 280, 70)
+      ctx.strokeStyle = item.color
+      ctx.lineWidth = 2
+      ctx.strokeRect(x, yOffset, 280, 70)
+      
+      ctx.fillStyle = item.color
+      ctx.font = 'bold 12px sans-serif'
+      ctx.fillText(item.label, x + 10, yOffset + 20)
+      
+      ctx.fillStyle = '#1e293b'
+      ctx.font = 'bold 28px sans-serif'
+      ctx.fillText(formatHours(item.hours), x + 10, yOffset + 55)
+    })
+    
+    yOffset += 100
+    
+    // Draw Activity Timeline
+    ctx.fillStyle = '#1e293b'
+    ctx.font = 'bold 16px sans-serif'
+    ctx.fillText('Activity Timeline', 20, yOffset)
+    yOffset += 30
+    
+    if (log.segments && log.segments.length > 0) {
+      log.segments.forEach((segment, index) => {
+        const startHour = segment.start_hour || segment.startHour || 0
+        const duration = segment.duration || 0
+        
+        // Time
+        ctx.fillStyle = '#64748b'
+        ctx.font = '13px monospace'
+        const timeStr = `${Math.floor(startHour).toString().padStart(2, '0')}:${Math.round((startHour % 1) * 60).toString().padStart(2, '0')}`
+        ctx.fillText(timeStr, 20, yOffset)
+        
+        // Status dot
+        const dotColor = segment.status === 'off-duty' ? '#22c55e' :
+                        segment.status === 'sleeper' ? '#3b82f6' :
+                        segment.status === 'driving' ? '#ef4444' : '#f97316'
+        ctx.fillStyle = dotColor
+        ctx.beginPath()
+        ctx.arc(100, yOffset - 4, 5, 0, Math.PI * 2)
+        ctx.fill()
+        
+        // Status text
+        ctx.fillStyle = '#1e293b'
+        ctx.font = 'bold 13px sans-serif'
+        const statusText = segment.status.charAt(0).toUpperCase() + segment.status.slice(1).replace('-', ' ')
+        ctx.fillText(statusText, 120, yOffset)
+        
+        // Location
+        if (segment.location) {
+          ctx.fillStyle = '#64748b'
+          ctx.font = '13px sans-serif'
+          ctx.fillText(`- ${segment.location}`, 250, yOffset)
+        }
+        
+        // Duration
+        ctx.fillStyle = '#64748b'
+        ctx.font = '13px sans-serif'
+        ctx.textAlign = 'right'
+        ctx.fillText(formatHours(duration), 1180, yOffset)
+        ctx.textAlign = 'left'
+        
+        yOffset += 25
+        
+        // Stop if we're running out of space
+        if (yOffset > 980) return
+      })
+    }
+    
+    // Download
+    const date = new Date(log.date || log.log_date).toISOString().slice(0, 10)
+    const link = document.createElement('a')
+    link.href = tempCanvas.toDataURL('image/png')
+    link.download = `eld-log-complete-${date}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <Card className="mb-6 border-primary/20">
       <CardHeader className="bg-linear-to-r from-primary to-primary-light text-white">
@@ -238,18 +352,9 @@ export default function ELDLogDisplay({ log, tripData }) {
               size="sm"
               variant="outline"
               className="bg-white text-primary border-white/30"
-              onClick={() => {
-                if (!canvasRef.current) return
-                const date = new Date(log.date || log.log_date).toISOString().slice(0,10)
-                const link = document.createElement('a')
-                link.href = canvasRef.current.toDataURL('image/png')
-                link.download = `eld-log-${date}.png`
-                document.body.appendChild(link)
-                link.click()
-                document.body.removeChild(link)
-              }}
+              onClick={downloadCompleteLog}
             >
-              Download PNG
+              Download Complete Log
             </Button>
           </div>
         </div>

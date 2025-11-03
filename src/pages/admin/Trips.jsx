@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
+import { ConfirmDialog, AlertDialog } from '@/components/ui/Dialog'
 import {
   Truck,
   MapPin,
@@ -32,6 +33,8 @@ export default function AdminTrips() {
   const [selectedTrip, setSelectedTrip] = useState(null)
   const [rejectNotes, setRejectNotes] = useState('')
   const [actionLoading, setActionLoading] = useState(null)
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: null, tripId: null })
+  const [alertDialog, setAlertDialog] = useState({ isOpen: false, title: '', message: '' })
 
   useEffect(() => {
     dispatch(fetchTrips())
@@ -92,7 +95,11 @@ export default function AdminTrips() {
 
   const handleReject = async (tripId) => {
     if (!rejectNotes.trim()) {
-      alert('Please provide rejection notes')
+      setAlertDialog({
+        isOpen: true,
+        title: 'Rejection Notes Required',
+        message: 'Please provide rejection notes before rejecting this trip.'
+      })
       return
     }
 
@@ -104,23 +111,39 @@ export default function AdminTrips() {
       setRejectNotes('')
     } catch (error) {
       if (import.meta.env.DEV) console.error('Reject error:', error)
+      setAlertDialog({
+        isOpen: true,
+        title: 'Error',
+        message: error.response?.data?.error || 'Failed to reject trip'
+      })
     } finally {
       setActionLoading(null)
     }
   }
 
   const handleDeleteTrip = async (tripId) => {
-    if (!confirm('Are you sure you want to delete this trip? This action cannot be undone.')) {
-      return
-    }
+    setConfirmDialog({
+      isOpen: true,
+      type: 'delete',
+      tripId: tripId
+    })
+  }
 
+  const confirmDelete = async () => {
+    const tripId = confirmDialog.tripId
+    setConfirmDialog({ isOpen: false, type: null, tripId: null })
+    
     setActionLoading(`delete-${tripId}`)
     try {
       await TripService.deleteTrip(tripId)
       dispatch(fetchTrips())
     } catch (error) {
       if (import.meta.env.DEV) console.error('Delete error:', error)
-      alert(error.response?.data?.error || 'Failed to delete trip')
+      setAlertDialog({
+        isOpen: true,
+        title: 'Error',
+        message: error.response?.data?.error || 'Failed to delete trip'
+      })
     } finally {
       setActionLoading(null)
     }
@@ -347,6 +370,24 @@ export default function AdminTrips() {
           )}
         </SheetContent>
       </Sheet>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen && confirmDialog.type === 'delete'}
+        onClose={() => setConfirmDialog({ isOpen: false, type: null, tripId: null })}
+        onConfirm={confirmDelete}
+        title="Delete Trip"
+        message="Are you sure you want to delete this trip? This action cannot be undone and will remove all associated data including ELD logs."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
+
+      <AlertDialog
+        isOpen={alertDialog.isOpen}
+        onClose={() => setAlertDialog({ isOpen: false, title: '', message: '' })}
+        title={alertDialog.title}
+        message={alertDialog.message}
+      />
     </motion.div>
   )
 }
