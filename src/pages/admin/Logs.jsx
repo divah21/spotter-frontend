@@ -341,7 +341,7 @@ export default function AdminLogs() {
         <SheetContent side="right" className="w-full sm:max-w-[90vw] overflow-y-auto">
           {viewLog && (
             <div className="space-y-4">
-              <ELDLogDisplay log={viewLog} tripData={viewLog.trip || {}} />
+              <ELDLogDisplay log={viewLog} tripData={typeof viewLog.trip === 'object' ? viewLog.trip : {}} />
               <Button onClick={() => setViewLog(null)} className="w-full">Close</Button>
             </div>
           )}
