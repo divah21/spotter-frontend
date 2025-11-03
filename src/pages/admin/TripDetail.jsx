@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/Button'
 import TripDetailView from '../driver/TripDetail'
 import { fetchTripById } from '@/redux/tripSlice'
 
-// Admin reuses the driver trip detail view (no logs)
 export default function AdminTripDetail() {
   const { id } = useParams()
   const dispatch = useDispatch()
@@ -27,9 +26,7 @@ export default function AdminTripDetail() {
   return (
     <div className="min-h-screen">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-4 px-4">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="text-primary"> <ArrowLeft className="w-4 h-4 mr-2"/> Back</Button>
       </motion.div>
-      {/* Render the same detail view component by composition */}
       <TripDetailView />
     </div>
   )

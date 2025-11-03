@@ -22,6 +22,7 @@ import {
   approveTripRequest,
   rejectTripRequest
 } from '@/redux/tripSlice'
+import TripService from '@/services/trip.service'
 
 export default function AdminTrips() {
   const dispatch = useDispatch()
@@ -103,6 +104,23 @@ export default function AdminTrips() {
       setRejectNotes('')
     } catch (error) {
       if (import.meta.env.DEV) console.error('Reject error:', error)
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleDeleteTrip = async (tripId) => {
+    if (!confirm('Are you sure you want to delete this trip? This action cannot be undone.')) {
+      return
+    }
+
+    setActionLoading(`delete-${tripId}`)
+    try {
+      await TripService.deleteTrip(tripId)
+      dispatch(fetchTrips())
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Delete error:', error)
+      alert(error.response?.data?.error || 'Failed to delete trip')
     } finally {
       setActionLoading(null)
     }
@@ -214,6 +232,21 @@ export default function AdminTrips() {
                       onClick={() => window.location.assign(`/admin/trips/${trip.id}`)}
                     >
                       View Details
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteTrip(trip.id)}
+                      disabled={actionLoading === `delete-${trip.id}`}
+                    >
+                      {actionLoading === `delete-${trip.id}` ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        'Delete'
+                      )}
                     </Button>
                   </div>
                   

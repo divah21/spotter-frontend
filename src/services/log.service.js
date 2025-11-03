@@ -60,6 +60,12 @@ const LogService = {
     const response = await api.get(`/logs/${logId}`)
     return response.data.segments || []
   },
+
+  // Delete log (admin only)
+  deleteLog: async (logId) => {
+    const response = await api.delete(`/logs/${logId}`)
+    return response.data
+  },
 }
 
 export default LogService

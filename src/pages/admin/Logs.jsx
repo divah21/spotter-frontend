@@ -18,6 +18,7 @@ import { motion } from 'framer-motion'
 import { Sheet, SheetContent } from '@/components/ui/Sheet'
 import ELDLogDisplay from '@/components/ELDLogDisplay'
 import { fetchPendingLogs, fetchLogs, reviewLogRequest } from '@/redux/logSlice'
+import LogService from '@/services/log.service'
 
 export default function AdminLogs() {
   const dispatch = useDispatch()
@@ -99,6 +100,27 @@ export default function AdminLogs() {
       setReviewNotes('')
     } catch (error) {
       if (import.meta.env.DEV) console.error('Review error:', error)
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleDeleteLog = async (logId) => {
+    if (!confirm('Are you sure you want to delete this log? This action cannot be undone.')) {
+      return
+    }
+
+    setActionLoading(`delete-${logId}`)
+    try {
+      await LogService.deleteLog(logId)
+      if (statusFilter === 'submitted') {
+        dispatch(fetchPendingLogs())
+      } else {
+        dispatch(fetchLogs())
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Delete error:', error)
+      alert(error.response?.data?.error || 'Failed to delete log')
     } finally {
       setActionLoading(null)
     }
@@ -242,6 +264,21 @@ export default function AdminLogs() {
                       onClick={() => setViewLog(log)}
                     >
                       View Full Log
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteLog(log.id)}
+                      disabled={actionLoading === `delete-${log.id}`}
+                    >
+                      {actionLoading === `delete-${log.id}` ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        'Delete'
+                      )}
                     </Button>
                   {log.submission_status === 'submitted' && (
                       <>
