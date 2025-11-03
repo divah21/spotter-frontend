@@ -24,7 +24,7 @@ export default function ELDLogDisplay({ log, tripData }) {
   }, [log, tripData])
 
   const drawELDLog = (ctx, log, width, height, tripData) => {
-    const headerHeight = 80
+    const headerHeight = 120
     const gridHeight = 200
     const gridY = headerHeight
     const hourWidth = width / 24
@@ -47,8 +47,8 @@ export default function ELDLogDisplay({ log, tripData }) {
   const toLoc = (tripData?.dropoff_location || tripData?.dropoffLocation || log.trip?.dropoff_location || log.trip?.dropoffLocation || '')
   const fromTime = log.from_time || log.fromTime || ''
   const toTime = log.to_time || log.toTime || ''
-  ctx.fillText(`From: ${fromLoc || fromTime || ''}`, 250, 44)
-  ctx.fillText(`To: ${toLoc || toTime || ''}`, 520, 44)
+  ctx.fillText(`From: ${fromTime || fromLoc || ''}`, 250, 44)
+  ctx.fillText(`To: ${toTime || toLoc || ''}`, 520, 44)
   const milesDriving = Number(log.total_miles_driving_today || log.totalMilesDrivingToday || log.total_miles || log.totalMiles || 0)
   const totalMileageToday = Number(log.total_mileage_today || log.totalMileageToday || milesDriving || 0)
   ctx.fillText(`Total Miles Driving Today: ${milesDriving}`, 820, 44)
@@ -59,10 +59,22 @@ export default function ELDLogDisplay({ log, tripData }) {
   const truck = log.truck_numbers || log.truck || log.tractor_trailer || ''
   const mainOffice = log.main_office_address || ''
   const homeTerminal = log.home_terminal_address || ''
+  const driverName = (log.driver && (log.driver.first_name || log.driver.last_name))
+    ? `${log.driver.first_name || ''} ${log.driver.last_name || ''}`.trim()
+    : (log.driver_name || log.driverFullName || '')
+  if (driverName) ctx.fillText(`Driver: ${driverName}`, 20, 28 + 16) // second line, small
   ctx.fillText(`Name of Carrier: ${carrier}`, 20, 60)
   ctx.fillText(`Truck/Trailer/Lic #: ${truck}`, 20, 76)
   ctx.fillText(`Main Office: ${mainOffice}`, 250, 60)
   ctx.fillText(`Home Terminal: ${homeTerminal}`, 250, 76)
+
+    // visual padding divider under header
+    ctx.strokeStyle = '#cbd5e1'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(0, gridY - 8)
+    ctx.lineTo(width, gridY - 8)
+    ctx.stroke()
     
     // Draw grid lines (24 hours)
     ctx.strokeStyle = '#94a3b8'
@@ -109,7 +121,13 @@ export default function ELDLogDisplay({ log, tripData }) {
       }
     }
     
-    // Draw segments as thin lines on the center of each row with vertical connectors (paper log style)
+    // helpers
+    const timeLabel = (h) => {
+      const hr = Math.floor(h)
+      return `${hr}`
+    }
+
+    // Draw segments as thin lines on the center of each row with vertical connectors and dots at turning points (paper log style)
     if (log.segments && log.segments.length > 0) {
       const centerYOfRow = (idx) => gridY + idx * rowHeight + rowHeight / 2
       ctx.lineWidth = 3
@@ -146,6 +164,18 @@ export default function ELDLogDisplay({ log, tripData }) {
         ctx.moveTo(startX, y)
         ctx.lineTo(endX, y)
         ctx.stroke()
+
+        // dots at segment start and end
+        ctx.fillStyle = '#0f172a'
+        ctx.beginPath(); ctx.arc(startX, y, 3, 0, Math.PI * 2); ctx.fill()
+        ctx.beginPath(); ctx.arc(endX, y, 3, 0, Math.PI * 2); ctx.fill()
+
+        // small time label centered on the segment
+        const label = `${timeLabel(startHour)}–${timeLabel(startHour + duration)}`
+        ctx.font = '10px sans-serif'
+        ctx.fillStyle = '#64748b'
+        ctx.textAlign = 'center'
+        ctx.fillText(label, (startX + endX) / 2, y - 6)
 
         prevEndX = endX
         prevRowIndex = rowIndex
